@@ -333,7 +333,15 @@ function forward_to_cheney(container)
 {
 	return new Promise(function(resolve, reject) {
 	console.info("forward_to_cheney");
+	if(!container.key.startsWith("Inbox/"))
+	{
+		console.info("Forward to Cheney is skipped for not in Inbox folder");
 
+		//
+		//	->	Move to the next chain.
+		//
+		return resolve(container);
+	}
 		//
 		//	1.	Set the query.
 		//
