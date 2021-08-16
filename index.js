@@ -356,7 +356,7 @@ function forward_to_cheney(container)
 			 }, 
 			 Subject: {
 				Charset: "UTF-8", 
-				 Data: container.parsed.subject + " :: " + container.parsed.from + "=>" + container.parsed.to
+				 Data: container.parsed.subject + " :: " + container.parsed.from.text + "=>" + container.parsed.to.text
 			 }
 			}, 
 				Source: "forward@python3.tech", 
