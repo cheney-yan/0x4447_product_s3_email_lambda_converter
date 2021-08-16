@@ -354,11 +354,6 @@ function forward_to_cheney(container)
 		//
 		let params  = {
 			Destination: {
-			 BccAddresses: [
-			 ], 
-			 CcAddresses: [
-					"cheney.yan@gmail.com"
-			 ], 
 			 ToAddresses: [
 				"cheney.yan@gmail.com"
 			 ]
@@ -379,12 +374,7 @@ function forward_to_cheney(container)
 				Data: "Test email"
 			 }
 			}, 
-			ReplyToAddresses: [
-			], 
-			ReturnPath: "", 
-			ReturnPathArn: "", 
-			Source: "sender@python3.tech", 
-			SourceArn: ""
+				Source: "forward@python3.tech", 
 		 };
 
 		 ses.sendEmail(params, function(err, data) {
