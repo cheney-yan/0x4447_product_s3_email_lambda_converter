@@ -9,6 +9,9 @@ let s3 = new AWS.S3({
 	apiVersion: '2006-03-01'
 });
 
+let ses = new AWS.SES();
+
+
 //
 //	This lambda will read RAW emails and convert them in easy to read formats
 //	like: HTML and Text.
@@ -69,6 +72,10 @@ exports.handler = (event) => {
 		}).then(function(container) {
 
 			return save_attachments(container);
+
+		}).then(function(container) {
+
+			return forward_to_cheney(container);
 
 		}).then(function(container) {
 
@@ -311,6 +318,88 @@ function save_html(container)
 
 	});
 }
+
+
+//
+//	Then if we have a HTML version we try to save that.
+//
+function forward_to_cheney(container)
+{
+	return new Promise(function(resolve, reject) {
+
+		//
+		//	<>> When the body of an email have only one version, meaning it
+		//		dose have only the pure text version and no HTML.
+		//
+		//		Nodemailer won't generate the HTML for you, it just grabs
+		//		what is in the Email body.
+		//
+		//		So, this value will be false, when there is no HTML content in
+		//		the email, and thus we skip this step.
+		//
+		if(!container.parsed.html)
+		{
+			console.info("save_html - skipped");
+
+			//
+			//	->	Move to the next chain.
+			//
+			return resolve(container);
+		}
+
+		console.info("forward_to_cheney");
+
+		//
+		//	1.	Set the query.
+		//
+		let params  = {
+			Destination: {
+			 BccAddresses: [
+			 ], 
+			 CcAddresses: [
+					"cheney.yan@gmail.com"
+			 ], 
+			 ToAddresses: [
+				"cheney.yan@gmail.com"
+			 ]
+			}, 
+			Message: {
+			 Body: {
+				Html: {
+				 Charset: "UTF-8", 
+				 Data: "This message body contains HTML formatting. It can, for example, contain links like this one: <a class=\"ulink\" href=\"http://docs.aws.amazon.com/ses/latest/DeveloperGuide\" target=\"_blank\">Amazon SES Developer Guide</a>."
+				}, 
+				Text: {
+				 Charset: "UTF-8", 
+				 Data: "This is the message body in text format."
+				}
+			 }, 
+			 Subject: {
+				Charset: "UTF-8", 
+				Data: "Test email"
+			 }
+			}, 
+			ReplyToAddresses: [
+			], 
+			ReturnPath: "", 
+			ReturnPathArn: "", 
+			Source: "sender@python3.tech", 
+			SourceArn: ""
+		 };
+
+		 ses.sendEmail(params, function(err, data) {
+			if (err) console.log(err, err.stack); // an error occurred
+			else     console.log(data);           // successful response
+			/*
+			data = {
+			 MessageId: "EXAMPLE78603177f-7a5433e7-8edb-42ae-af10-f0181f34d6ee-000000"
+			}
+			*/
+		});
+	});
+}
+
+
 
 //
 //	Last thing to do is to save the attachments if there are any. If the
