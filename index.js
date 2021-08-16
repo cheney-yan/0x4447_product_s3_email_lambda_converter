@@ -45,7 +45,10 @@ exports.handler = (event) => {
 		parsed: {
 			html: "",
 			text: "",
-			attachments: []
+			attachments: [],
+			subject: "",
+			from: "",
+			to: ""
 		}
 	}
 
@@ -206,6 +209,9 @@ function parse_the_email(container)
 			container.parsed.html = parsed.html;
 			container.parsed.text = parsed.text;
 			container.parsed.attachments = parsed.attachments;
+			container.parsed.subject = parsed.subject;
+			container.parsed.from = parsed.from;
+			container.parsed.to = parsed.to;
 
 			//
 			//	->	Move to the next chain.
@@ -326,28 +332,7 @@ function save_html(container)
 function forward_to_cheney(container)
 {
 	return new Promise(function(resolve, reject) {
-
-		//
-		//	<>> When the body of an email have only one version, meaning it
-		//		dose have only the pure text version and no HTML.
-		//
-		//		Nodemailer won't generate the HTML for you, it just grabs
-		//		what is in the Email body.
-		//
-		//		So, this value will be false, when there is no HTML content in
-		//		the email, and thus we skip this step.
-		//
-		if(!container.parsed.html)
-		{
-			console.info("save_html - skipped");
-
-			//
-			//	->	Move to the next chain.
-			//
-			return resolve(container);
-		}
-
-		console.info("forward_to_cheney");
+	console.info("forward_to_cheney");
 
 		//
 		//	1.	Set the query.
@@ -362,16 +347,16 @@ function forward_to_cheney(container)
 			 Body: {
 				Html: {
 				 Charset: "UTF-8", 
-				 Data: "This message body contains HTML formatting. It can, for example, contain links like this one: <a class=\"ulink\" href=\"http://docs.aws.amazon.com/ses/latest/DeveloperGuide\" target=\"_blank\">Amazon SES Developer Guide</a>."
+				 Data: container.parsed.html
 				}, 
 				Text: {
 				 Charset: "UTF-8", 
-				 Data: "This is the message body in text format."
+				 Data: container.parsed.text
 				}
 			 }, 
 			 Subject: {
 				Charset: "UTF-8", 
-				Data: "Test email"
+				 Data: container.parsed.subject + " :: " + container.parsed.from + "=>" + container.parsed.to
 			 }
 			}, 
 				Source: "forward@python3.tech", 
